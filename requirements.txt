@@ -1,0 +1,40 @@
+# Core dependencies
+kafka-python==2.0.2
+confluent-kafka==2.3.0
+
+# Data processing
+pandas==2.1.4
+numpy==1.24.3
+scipy==1.11.4
+
+# Spark dependencies
+pyspark==3.5.0
+findspark==2.0.1
+
+# Web framework for dashboard
+flask==3.0.0
+flask-socketio==5.3.6
+
+# Visualization
+plotly==5.17.0
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# Utilities
+python-dotenv==1.0.0
+requests==2.31.0
+python-dateutil==2.8.2
+
+# Logging and monitoring
+psutil==5.9.6
+
+# JSON handling (usually built-in, but explicit version)
+jsonlines==4.0.0
+
+# For async operations
+asyncio-mqtt==0.16.1
+
+# Development tools
+pytest==7.4.3
+black==23.11.0
+flake8==6.1.0
