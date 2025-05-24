@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>📦 Amazon Review Dashboard</title>
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/style.css') }}"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <nav class="navbar navbar-dark">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="#">
+          <i class="fas fa-chart-line mr-2"></i>
+          Amazon Review Analytics Dashboard
+        </a>
+        <span class="navbar-text">
+          <i class="fas fa-clock mr-1"></i>
+          <span id="currentTime"></span>
+        </span>
+      </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+      <!-- Real-time Panel -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card online-panel fade-in">
+            <div class="card-header">
+              <i class="fas fa-broadcast-tower mr-2"></i>
+              <span class="real-time-indicator"></span>
+              Real-Time Analytics
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-lg-8">
+                  <h5 class="mb-3">
+                    <i class="fas fa-comment-alt mr-2"></i>Latest Reviews (Top 10)
+                  </h5>
+                  <div class="table-responsive">
+                    <table class="table table-sm table-striped">
+                      <thead>
+                        <tr>
+                          <th><i class="fas fa-clock mr-1"></i>Timestamp</th>
+                          <th><i class="fas fa-barcode mr-1"></i>Product (ASIN)</th>
+                          <th><i class="fas fa-smile mr-1"></i>Sentiment</th>
+                          <th><i class="fas fa-comment mr-1"></i>Review Summary</th>
+                          <th><i class="fas fa-percentage mr-1"></i>Confidence</th>
+                        </tr>
+                      </thead>
+                      <tbody id="latest-review-body">
+                        <tr>
+                          <td colspan="5" class="text-center loading">
+                            Loading latest reviews...
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="col-lg-4">
+                  <h6 class="mb-3">
+                    <i class="fas fa-chart-bar mr-2"></i>Sentiment Distribution (Last 5 Minutes)
+                  </h6>
+                  <div class="chart-container" style="height: 250px;">
+                    <canvas id="liveSentimentChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Offline Analysis Panel -->
+      <div class="row">
+        <div class="col-12">
+          <div class="card offline-panel fade-in">
+            <div class="card-header">
+              <i class="fas fa-analytics mr-2"></i>
+              Historical Analysis & Insights
+            </div>
+            <div class="card-body">
+              <!-- Sentiment Over Time Section -->
+              <div class="section-header">
+                <i class="fas fa-chart-line mr-2"></i>
+                1. Sentiment Trends Over Time
+              </div>
+              
+              <div class="row mb-4">
+                <div class="col-md-8">
+                  <div class="form-group">
+                    <label for="filterAsinSOT">
+                      <i class="fas fa-filter mr-2"></i>Filter by Product (ASIN):
+                    </label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="filterAsinSOT"
+                      placeholder="Enter ASIN (e.g., B00004Y2UT) or leave empty for all products"
+                    />
+                  </div>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                  <button class="btn btn-primary btn-block" id="applySotFilter">
+                    <i class="fas fa-search mr-2"></i>Apply Filter
+                  </button>
+                </div>
+              </div>
+              
+              <div class="chart-container">
+                <canvas id="sentimentOverTimeChart"></canvas>
+              </div>
+
+              <hr class="my-5">
+
+              <!-- Product Analysis Section -->
+              <div class="section-header">
+                <i class="fas fa-box-open mr-2"></i>
+                2. Individual Product Deep Dive
+              </div>
+              
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="productSelect">
+                      <i class="fas fa-search mr-2"></i>Select Product for Analysis:
+                    </label>
+                    <select class="form-control" id="productSelect">
+                      <option value="" class="loading">Loading products...</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                  <button class="btn btn-success btn-block" id="analyzeProduct">
+                    <i class="fas fa-microscope mr-2"></i>Analyze Product
+                  </button>
+                </div>
+                <div class="col-md-3 d-flex align-items-center justify-content-center">
+                  <span id="selectedAsinDisplay" class="badge badge-secondary">
+                    <i class="fas fa-info-circle mr-1"></i>No product selected
+                  </span>
+                </div>
+              </div>
+
+              <div id="productAnalysisContent" style="display: none;" class="fade-in">
+                <div class="row mb-4">
+                  <div class="col-12">
+                    <div class="alert alert-info" id="productSummary">
+                      <!-- Product summary will be displayed here -->
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row mb-4">
+                  <div class="col-md-6">
+                    <div class="card">
+                      <div class="card-body">
+                        <h6 class="card-title">
+                          <i class="fas fa-chart-pie mr-2"></i>Sentiment Distribution
+                        </h6>
+                        <div class="chart-container" style="height: 300px;">
+                          <canvas id="productSentimentPieChart"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="card">
+                      <div class="card-body">
+                        <h6 class="card-title">
+                          <i class="fas fa-chart-area mr-2"></i>Review Volume Over Time
+                        </h6>
+                        <div class="chart-container" style="height: 300px;">
+                          <canvas id="productReviewCountChart"></canvas>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-12">
+                    <div class="card">
+                      <div class="card-body">
+                        <h6 class="card-title">
+                          <i class="fas fa-comments mr-2"></i>Recent Reviews Sample
+                        </h6>
+                        <div class="table-responsive">
+                          <table class="table table-sm table-striped">
+                            <thead>
+                              <tr>
+                                <th><i class="fas fa-calendar mr-1"></i>Date</th>
+                                <th><i class="fas fa-smile mr-1"></i>Sentiment</th>
+                                <th><i class="fas fa-percentage mr-1"></i>Confidence</th>
+                                <th><i class="fas fa-comment-dots mr-1"></i>Review Text</th>
+                                <th><i class="fas fa-star mr-1"></i>Rating</th>
+                              </tr>
+                            </thead>
+                            <tbody id="recentReviewsTable">
+                              <!-- Recent reviews will be populated here -->
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="my-5">
+
+              <!-- Global Statistics Section -->
+              <div class="section-header">
+                <i class="fas fa-globe mr-2"></i>
+                3. Global Platform Statistics
+              </div>
+              
+              <div id="globalStatsContent" class="fade-in">
+                <div class="text-center loading">Loading global statistics...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Update current time
+      function updateTime() {
+        const now = new Date();
+        document.getElementById('currentTime').textContent = now.toLocaleString();
+      }
+      updateTime();
+      setInterval(updateTime, 1000);
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>
